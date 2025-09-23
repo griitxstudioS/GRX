@@ -1,0 +1,60 @@
+# Enhanced Security for GRIITX Store
+
+# Block ALL access to admin.html
+<Files "admin.html">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Block access to database.js
+<Files "database.js">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Block access to any admin-related files
+<FilesMatch "(admin|Admin|ADMIN)">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Only allow access from your specific IP (replace with your IP)
+# Uncomment these lines and add your IP:
+# <Files "admin.html">
+#     Order Deny,Allow
+#     Deny from all
+#     Allow from YOUR_IP_ADDRESS_HERE
+# </Files>
+
+# Enable HTTPS redirect
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Hide file extensions
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^\.]+)$ $1.html [NC,L]
+
+# Block common attack patterns
+RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} proc/self/environ [OR]
+RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]
+RewriteCond %{QUERY_STRING} base64_(en|de)code[^(]*\([^)]*\) [OR]
+RewriteCond %{QUERY_STRING} (<|%3C)([^s]*s)+cript.*(>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC]
+RewriteRule .* - [F]
+
+# Block access to sensitive files
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|inc|bak|php)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Block access to backup files
+<FilesMatch "\.(bak|backup|old|tmp)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
