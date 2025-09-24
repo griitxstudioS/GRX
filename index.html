@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRX | Official Streetwear Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <!-- Font Awesome for modern icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="database.js" defer></script>
+  
+    <!-- Firebase SDKs (v9 COMPAT version - easiest to integrate) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyC2hBbPCpE1dzXxMOyiaieB7toQnPILPoc",
+        authDomain: "griitx-store.firebaseapp.com",
+        projectId: "griitx-store",
+        storageBucket: "griitx-store.firebasestorage.app",
+        messagingSenderId: "369135787913",
+        appId: "1:369135787913:web:90cfde251842ef9a0c0b58",
+        measurementId: "G-JDQ435H50Z"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Make the database connection available to all scripts
+      window.db = firebase.firestore(); 
+    </script>
+
+    <style>
+/* =========================
+   GRIITX STREETWEAR STORE CSS (Merged + Modal & Header Logo)
+   ========================= */
+:root {
+  --charcoal: #111111;
+  --cream: #f5f5f5;
+  --white: #ffffff;
+  --primary: #ede3d1;
+  --secondary: #111111;
+  --accent: #ff3b30;
+  --accent-cyan: #00d4ff;
+  --accent-pink: #ff0099;
+  --muted: #777;
+  --transition: 0.35s ease;
+}
+
+/* ---------- Reset & basics ---------- */
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Montserrat', sans-serif; }
+html,body { height:100%; }
+body {
+  background: var(--cream);
+  color: var(--secondary);
+  overflow-x:hidden;
+  scroll-behavior:smooth;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Display font for bold headings */
+h1, h2, h3, .shiny-text { font-family: 'Bebas Neue', Impact, system-ui, sans-serif; letter-spacing: 2px; }
+
+/* =========================
+   HEADER
+   ========================= */
+header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 30px;
+  background: var(--cream);
+  backdrop-filter: blur(12px);
+  position:sticky;
+  top:0;
+  z-index:1000;
+  transition: all 0.3s ease;
+}
+header.scrolled {
+  background: rgba(17,17,17,0.92);
+  color: var(--cream);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 6px 30px rgba(0,0,0,0.12);
+}
+
+/* Logo handling (default & scrolled versions) */
+header img.logo { height:55px; cursor:pointer; transition: transform 0.3s ease; }
+header img.logo:hover { transform: scale(1.05); }
+
+/* support toggling between two logo assets */
+.logo-default { display: inline-block; }
+.logo-scrolled { display: none; }
+header.scrolled .logo-default { display: none; }
+header.scrolled .logo-scrolled { display: inline-block; }
+
+/* =========================
+   NAVIGATION
+   ========================= */
+nav { display:flex; align-items:center; gap:8px; /* Default for desktop */ }
+nav a {
+  margin:0 12px;
+  font-weight:700;
+  font-size:0.9rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color: var(--secondary);
+  text-decoration:none;
+  transition: color 0.3s, transform 0.3s;
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  padding:10px 8px;
+}
+nav a::after {
+  content:"";
+  position:absolute;
+  width:0;
+  height:3px;
+  bottom:-6px;
+  left:0;
+  background:var(--accent);
+  transition: width 0.28s ease;
+}
+nav a:hover::after { width:100%; }
+header.scrolled nav a { color: var(--cream); }
+
+/* =========================
+   ICONS & SEARCH
+   ========================= */
+.icons { display:flex; align-items:center; gap:12px; }
+.icon-btn {
+  background:transparent; border:none; cursor:pointer; font-size:1.2rem; position:relative;
+  transition: transform var(--transition);
+  display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px;
+}
+.icon-btn:hover { transform: scale(1.2); }
+.icon-btn i { color: var(--secondary); transition: color 0.3s ease, transform var(--transition); }
+header.scrolled .icon-btn i { color: var(--cream); }
+
+.cart-count {
+  position:absolute; top:-6px; right:-6px; background:var(--accent); color:#fff;
+  font-size:0.75rem; padding:4px 6px; border-radius:50px;
+}
+
+/* Search input (hidden by default; appears when toggled via JS) */
+#searchInput {
+  display: none;
+  border: none;
+  border-bottom: 2px solid var(--charcoal);
+  background: transparent;
+  padding: 6px 4px;
+  font-size: 14px;
+  outline: none;
+  margin-left: 10px;
+  color: var(--charcoal);
+  transition: all 0.3s ease;
+}
+#searchInput::placeholder { color: #aaa; font-style: italic; }
+#searchInput:focus { border-bottom-color: var(--secondary); }
+header.scrolled #searchInput { border-bottom: 2px solid #fff; color: #fff; }
+header.scrolled #searchInput::placeholder { color: #ddd; }
+
+/* =========================
+   HAMBURGER
+   ========================= */
+.hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; }
+.hamburger span { width:26px; height:3px; background:var(--secondary); display:block; border-radius:3px; transition: all 0.3s ease; }
+header.scrolled .hamburger span {
+    background: var(--cream);
+}
+
+
+/* =========================
+   HERO
+   ========================= */
+
+    .shiny-text {
+      position: relative;
+      display: inline-block;
+      font-size: 3.5rem;
+      text-transform: uppercase;
+      letter-spacing: 6px;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(90deg, #fff, #ffe47a, #ff3b30, #fff);
+      background-size: 300%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 4s infinite linear;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    }
+
+    @keyframes shine {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Hero Section Fix */
+.hero {
+  width:100%;
+  height:80vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.65), rgba(0,0,0,0.75)),
+                  url('hero-background.jpg') no-repeat center/cover;
+  background-attachment: fixed;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Bluorng-inspired animated gradient blobs */
+.hero::before, .hero::after {
+  content: "";
+  position: absolute;
+  width: 55vmax; height: 55vmax;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+  transform: translate3d(0,0,0) scale(1);
+  animation: blobFloat 18s ease-in-out infinite alternate;
+  z-index: 0;
+}
+.hero::before {
+  background: radial-gradient(circle at 30% 30%, rgba(255,59,48,0.75), rgba(255,59,48,0) 60%),
+              radial-gradient(circle at 70% 70%, rgba(237,227,209,0.6), rgba(237,227,209,0) 60%);
+  top: -15vmax; left: -10vmax;
+}
+.hero::after {
+  background: radial-gradient(circle at 70% 40%, rgba(0, 212, 255, 0.5), rgba(0,212,255,0) 60%),
+              radial-gradient(circle at 40% 80%, rgba(255, 0, 153, 0.4), rgba(255,0,153,0) 60%);
+  bottom: -18vmax; right: -12vmax;
+  animation-duration: 22s;
+}
+@keyframes blobFloat {
+  0% { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(var(--blobX, 2%), var(--blobY, -2%), 0) scale(1.06); }
+}
+
+    @media(max-width:768px){
+      .shiny-text { font-size: 2rem; letter-spacing: 3px; }
+    }
+
+/* Card scroll-reveal animation */
+.card.reveal { opacity: 0; transform: translateY(16px); }
+.card.revealed { opacity: 1; transform: translateY(0); transition: opacity .6s ease, transform .6s ease; }
+
+/* =========================
+   SECTIONS
+   ========================= */
+section { padding:60px 30px; }
+.separator { width:80px; height:3px; background:var(--accent); margin:40px auto; border-radius:2px; }
+
+/* =========================
+   PRODUCT CARDS
+   ========================= */
+.products { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:24px; margin-bottom:30px; }
+.card {
+  background: rgba(255,255,255,0.75);
+  border-radius:20px;
+  overflow:hidden;
+  cursor:pointer;
+  position:relative;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.3s;
+  padding-bottom:10px;
+  border:1px solid rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+}
+.card:hover {
+  transform: translateY(-8px) scale(1.02) rotateX(1deg) rotateY(-1deg);
+  box-shadow:0 24px 40px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.6);
+  border-color:rgba(255,255,255,0.85);
+}
+.card img {
+  width:100%;
+  height:320px;
+  object-fit:contain;
+  transition: transform 0.5s ease;
+  border-radius:20px;
+  background: var(--cream);
+}
+.card:hover img { transform: scale(1.08); }
+.card h3 { padding:12px; text-align:center; font-weight:700; font-size:1rem; color: var(--secondary); }
+.card .price { text-align:center; font-weight:800; color:var(--accent); font-size:1rem; letter-spacing:1px; margin-bottom:8px; }
+.card .original-price { text-decoration:line-through; color:#999; font-size:0.9rem; margin-right:8px; }
+.card .discount-badge { background:var(--accent); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-left:8px; }
+.card .stock-status { font-size:0.8rem; color:var(--accent); font-weight:700; margin-top:4px; }
+.card .sold-out { color:#c62828; font-weight:700; }
+
+/* Sold-out overlay on cards */
+.card.sold-out::after {
+  content: 'SOLD OUT';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: rgba(0,0,0,0.55);
+  letter-spacing: 2px;
+}
+
+/* Add-to-Cart Floating Button (reveals on hover) */
+.add-btn {
+  position:absolute; bottom:16px; left:50%;
+  transform:translateX(-50%) translateY(20px);
+  opacity:0; background:var(--accent); color:#fff; border:none;
+  padding:10px 20px; border-radius:30px; font-weight:700; cursor:pointer;
+  transition: all 0.35s ease; z-index: 2;
+}.card:hover .add-btn { opacity:1; transform:translateX(-50%) translateY(0); }
+.add-btn:hover { background:var(--secondary); }
+
+
+/* =========================
+   MODAL (PRODUCT QUICKVIEW / VIDEO)
+   ========================= */
+/* base overlay */
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  width:100%; height:100%;
+  background: radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0.92), rgba(0,0,0,0.98));
+  justify-content:center; align-items:center;
+  z-index:2000; padding:20px;
+}
+.modal.open { display:flex; }
+
+/* Open/close animation */
+.modal.open .modal-content { animation: modalPopIn 240ms cubic-bezier(.2,.8,.2,1) forwards; }
+@keyframes modalPopIn { from { opacity:0; transform: translateY(14px) scale(.98); } to { opacity:1; transform: translateY(0) scale(1); } }
+
+.modal-content {
+  background: linear-gradient(180deg, #fff, #fafafa);
+  padding:16px 16px 14px;
+  border-radius:18px;
+  max-width:920px;
+  width:100%;
+  max-height:92vh;
+  overflow-y:auto;
+  position:relative;
+  text-align:center;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  display:flex;
+  flex-direction:column;
+}
+
+/* image gallery inside modal */
+.image-gallery {
+  position: relative;
+  width: 100%;
+  max-height: clamp(280px, 60vh, 560px);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background: var(--cream);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+/* Streetwear neon accent and grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: .45;
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+
+.accent-glow {
+  position: relative;
+}
+.accent-glow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -6px;
+  width: 60%;
+  height: 8px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255,59,48,0.35), rgba(255,59,48,0));
+  filter: blur(6px);
+}
+
+.gallery-image, .gallery-video {
+  width: 100%;
+  height: clamp(220px, 55vh, 520px);
+  object-fit: contain;
+  background: var(--cream);
+  display: none;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-image.active {
+  display: block;
+}
+
+.gallery-video.active {
+  display: block;
+}
+
+/* Slide counter */
+.slide-counter {
+  position:absolute;
+  right: 16px;
+  bottom: 14px;
+  background: rgba(17,17,17,0.82);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .5px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(6px);
+}
+
+/* Thumbnail strip */
+.thumb-strip {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.thumb-strip::-webkit-scrollbar { height: 6px; }
+.thumb-strip::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+.thumb {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+.thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
+.thumb.active { border-color: var(--accent); }
+
+/* Zoom/Pan container */
+.zoom-container { position: relative; overflow: hidden; background: var(--cream); z-index: 1; }
+.zoom-inner { touch-action: none; cursor: grab; }
+.zoom-inner.grabbing { cursor: grabbing; }
+
+/* headings and meta */
+.modal h2 { margin:8px 0 4px; color: var(--secondary); font-size:1.4rem; font-weight:800; }
+.modal h3 { margin:4px 0 8px; color:var(--accent); font-weight:800; }
+.modal ul { margin:8px 0 10px; text-align:left; padding-left:20px; color:#555; }
+.modal ul li { margin-bottom:6px; }
+
+/* actions */
+.modal .actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid #eee; position: relative; z-index: 3; }
+.modal button { padding:12px 24px; background:var(--secondary); color:var(--white); border:none; border-radius:30px; font-weight:700; cursor:pointer; transition: transform var(--transition), box-shadow var(--transition), background-color 0.3s ease; position: relative; }
+.modal button:hover { transform: scale(1.05); box-shadow:0 8px 18px rgba(0,0,0,0.25); background-color: #333; }
+.modal .secondary-btn { background:transparent; border:2px solid var(--secondary); color:var(--secondary); }
+.modal .secondary-btn:hover {
+  transform: scale(1.05);
+  box-shadow:0 8px 18px rgba(0,0,0,0.25);
+  background: var(--secondary);
+  color: var(--white);
+}
+
+/* size selector */
+.size-selector { display:flex; justify-content:center; gap:8px; margin:10px 0 6px; flex-wrap:wrap; }
+.size-btn { padding:8px 14px; border:2px solid #333; background:#fff; color:#333; border-radius:20px; font-weight:700; cursor:pointer; transition: all .25s ease; }
+.size-btn.active, .size-btn:hover { background:#111; color:#fff; border-color:#111; }
+
+/* close icon */
+.modal .close {
+  position:absolute; top:10px; right:14px; font-size:1.6rem; cursor:pointer; color: var(--secondary); transition: transform 0.3s; z-index: 5;
+}
+.modal .close:hover { transform: rotate(90deg) scale(1.2); color:var(--accent); }
+
+/* Staggered reveal (inspired by staggered menus) */
+@keyframes staggerUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.stagger-item { opacity: 0; transform: translateY(14px); animation: staggerUp .5s ease forwards; }
+
+/* =========================
+   CART SIDEBAR
+   ========================= */
+.cart-sidebar {
+  position: fixed;
+  right: -420px;
+  top: 0;
+  height: 100vh;
+  width: 380px;
+  background: #fff;
+  border-left: 4px solid var(--accent);
+  box-shadow: -8px 0 30px rgba(0,0,0,0.25);
+  z-index: 3000;
+  transition: right 0.35s ease;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.cart-sidebar.open { right: 0; }
+
+/* cart header */
+.cart-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:2px solid #eee; }
+.cart-header h2 { font-size:1.3rem; font-weight:700; color:var(--secondary); }
+.cart-close-btn {
+  background: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #555;
+  width: 32px; height: 32px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+.cart-close-btn:hover { background: var(--secondary); color: var(--white); transform: rotate(90deg) scale(1.1); }
+
+/* Cart item animations */
+@keyframes cartItemSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes cartItemSlideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(20px); }
+}
+
+/* cart items */
+.cart-items { display:flex; flex-direction:column; gap:14px; margin-bottom:20px; flex:1; }
+.cart-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: #fff;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid #eee;
+  animation: cartItemSlideIn 0.4s ease forwards;
+}
+.cart-item.removing {
+  animation: cartItemSlideOut 0.4s ease forwards;
+}
+.cart-item-img { width:70px; height:70px; object-fit:contain; border-radius:8px; background:var(--cream); padding:4px; }
+.cart-item-details h4 { font-size:0.9rem; font-weight:600; margin-bottom:4px; color:var(--secondary); line-height: 1.3; }
+.cart-item-details .price { font-weight:700; color:var(--accent); font-size:0.9rem; }
+.cart-item-details .size { color: #777; font-size: 0.8rem; }
+.cart-item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.remove-btn { background:transparent; border:none; color:#aaa; font-weight:600; cursor:pointer; font-size:0.8rem; transition: color 0.3s ease; }
+.remove-btn:hover { color: var(--accent); }
+
+/* Empty cart state */
+.cart-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #aaa;
+}
+.cart-empty-state i {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  display: block;
+}
+.cart-empty-state h4 { font-size: 1.2rem; color: #555; margin-bottom: 8px; }
+.cart-empty-state p { font-size: 0.9rem; }
+
+/* quantity controls */
+.qty-controls { display:flex; gap:8px; align-items:center; }
+.qty-controls .qty { padding:6px 10px; background:#fff; border-radius:8px; border:1px solid #ddd; min-width:34px; text-align:center; font-weight: 600; }
+.small-btn { /* For +/- buttons in cart */
+  padding:6px 10px; border-radius:8px; border:none; cursor:pointer; font-weight:600;
+  background:var(--secondary); color:#fff; transition: transform var(--transition), background-color 0.3s ease;
+}
+.small-btn:hover { transform: scale(1.08); background-color:#333; }
+
+/* cart footer */
+.cart-footer { margin-top:auto; padding-top:14px; border-top:2px solid #eee; }
+.cart-footer .total { font-weight:800; font-size:1.1rem; margin-bottom:14px; color:var(--secondary); }
+.cart-footer button#checkoutBtn {
+  width:100%; padding:14px; background:var(--secondary); color:#fff; border:none; border-radius:30px;
+  font-weight:700; letter-spacing:1px; cursor:pointer; transition: transform var(--transition), box-shadow var(--transition), background-color 0.3s ease;
+}
+.cart-footer button#checkoutBtn:hover { background-color:#333; transform: translateY(-2px) scale(1.03); box-shadow:0 6px 18px rgba(0,0,0,0.2); }
+.cart-footer .secondary-btn {
+  width:100%; padding:14px; background:transparent; color:var(--secondary); border:2px solid var(--secondary); border-radius:30px;
+  font-weight:700; letter-spacing:1px; cursor:pointer; transition: all 0.3s ease;
+}
+.cart-footer .secondary-btn:hover { background: var(--secondary); color: var(--white); transform: translateY(-2px) scale(1.03); box-shadow:0 6px 18px rgba(0,0,0,0.2); }
+
+/* Animated Shipping Banner */
+.shipping-banner {
+  background: #f8f8f8;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  text-align: center;
+  border: 1px solid #eee;
+  overflow: hidden;
+}
+.shipping-banner.unlocked {
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+}
+.shipping-track {
+  position: relative;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.shipping-progress { height: 100%; width: 0%; background: var(--secondary); border-radius: 6px; transition: width 0.4s ease; }
+.shipping-banner.unlocked .shipping-progress { background: #4caf50; }
+.shipping-truck { position: absolute; top: 50%; left: 0; transform: translateY(-50%) translateX(-10px); font-size: 1.5rem; transition: left 0.4s ease; }
+.banner-text { font-weight: 600; font-size: 0.9rem; color: #333; }
+.banner-text strong { color: var(--accent); }
+.shipping-banner.unlocked .banner-text {
+  color: #2e7d32;
+  font-weight: 700;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+/* =========================
+   ABOUT & CONTACT
+   ========================= */
+.about, .contact { max-width:900px; margin:auto; text-align:center; }
+.about p, .contact p { margin-top:20px; font-size:1.05rem; color:#555; line-height:1.6; }
+.contact a {
+  display:inline-block; margin:12px; padding:12px 18px; background:var(--accent); color:#fff; border-radius:25px; text-decoration:none; font-weight:600;
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+.contact a:hover { background:var(--secondary); color:var(--cream); transform:scale(1.05); box-shadow:0 6px 16px rgba(0,0,0,0.25); }
+
+/* =========================
+   FOOTER
+   ========================= */
+footer { text-align:center; padding:20px; background:#111; color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; }
+
+/* =========================
+   SCROLL TO TOP
+   ========================= */
+#scrollTopBtn {
+  position:fixed; bottom:40px; right:40px; padding:14px; background:var(--accent); color:#fff;
+  border:none; border-radius:50%; cursor:pointer; font-size:1rem; display:none; z-index:100; transition: transform var(--transition), background var(--transition);
+}
+#scrollTopBtn:hover { background:var(--secondary); transform:scale(1.1); }
+
+/* =========================
+   SCROLLBAR
+   ========================= */
+::-webkit-scrollbar { width:8px; }
+::-webkit-scrollbar-thumb { background:var(--accent); border-radius:10px; }
+::-webkit-scrollbar-track { background:#f1f1f1; }
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media(max-width:768px) {
+  header { flex-direction:row; gap:8px; padding:12px 16px; }
+  /* Mobile Navigation Overlay */
+  nav {
+    position: fixed;
+    top: 0;
+    left: -100%; /* Start off-screen */
+    width: 100%;
+    height: 100vh;
+    background: rgba(17,17,17,0.98);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    transition: left 0.35s ease;
+    z-index: 1500; /* Above header, below modals */
+  }
+  nav.open { left: 0; }
+  nav a { font-size: 1.5rem; color: var(--cream) !important; }
+
+  .hamburger {
+    display: flex;
+    z-index: 1600; /* Ensure hamburger is above nav when closed */
+    position: relative; /* Needed for z-index */
+  }
+  /* Animate hamburger to an 'X' when menu is open */
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .hamburger.open span { background: var(--cream); }
+
+  /* Fix for hero background on mobile (background-attachment: fixed is buggy) */
+  .hero { background-attachment: scroll; }
+  .hero h2 { font-size:2rem; }
+  .cart-sidebar { width:100%; right:-100%; }
+  .cart-sidebar.open { right:0; }
+  .card img { height:260px; }
+  .modal-content { padding:14px; max-width: 95%; border-radius:14px; }
+  .gallery-nav { width:46px; height:46px; border-radius:12px; }
+  .slide-counter { right: 10px; bottom: 10px; }
+}
+
+/* small screens tweaks */
+@media(max-width:480px) {
+  .card img { height:220px; }
+  .hero { height:60vh; }
+}
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <!-- Default Logo -->
+    <img src="logo-dark.png" alt="GRX Logo" class="logo logo-default" onclick="window.location='#home'">
+    <!-- Scrolled Logo -->
+    <img src="logo-light.png" alt="GRX Logo Light" class="logo logo-scrolled" onclick="window.location='#home'">
+
+    <div class="hamburger" id="hamburger" aria-label="Open menu" tabindex="0">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <nav id="mainNav">
+    <a href="#home">Home</a>
+    <a href="#shop">Shop</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="icons">
+    <input type="text" id="searchInput" placeholder="Search products...">
+    <button class="icon-btn" id="searchBtn" title="Search" aria-label="Search" type="button">
+      <i class="fas fa-magnifying-glass"></i>
+    </button>
+
+    <button class="icon-btn" id="cartBtn" title="Cart" aria-label="Open cart" type="button">
+      <i class="fas fa-shopping-cart"></i>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+
+    <!-- Admin button removed for security -->
+  </div>
+</header>
+
+<section class="hero" id="home">
+  <h2 class="shiny-text">UNLEASH THE GRIIT.</h2>
+</section>
+
+<div class="separator"></div>
+
+<section id="shop">
+  <h2 style="text-align:center; margin-bottom:30px;" class="accent-glow">Our Collection</h2>
+
+  <div class="products" id="productsGrid"></div>
+
+</section>
+
+
+
+
+
+</\/body><\/html>
+<div class="separator"></div>
+
+<!-- Sanji Modal -->
+<div class="modal" id="sanjiModal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('sanjiModal')" role="button" aria-label="Close modal">&times;</span>
+    <div class="image-gallery zoom-container stagger-item" data-product="sanji" style="animation-delay:.02s;">
+      <div class="zoom-inner">
+        <img src="sanji-main.png" class="gallery-image active" alt="Sanji T-Shirt Front">
+        <img src="sanji-1.jpg" class="gallery-image" alt="Sanji T-Shirt Back">
+        <img src="sanji-2.jpg" class="gallery-image" alt="Sanji T-Shirt Detail">
+        <video class="gallery-video" muted loop>
+          <source src="sanji-video.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="slide-counter" data-counter="sanji">1 / 4</div>
+    </div>
+    <div class="thumb-strip stagger-item" data-thumbs="sanji" style="animation-delay:.08s;"></div>
+    <h2 class="stagger-item" style="animation-delay:.12s;">🔥 Sanji Oversized T-Shirt – Purple Grunge Edition (Limited!)</h2>
+    <h3 class="stagger-item" style="animation-delay:.16s;"><span style="text-decoration:line-through; color:#999; margin-right:8px;">₹1,299</span>₹999 <span style="background:#ff3b30; color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-left:8px;">23% OFF</span></h3>
+    <ul class="stagger-item" style="animation-delay:.2s;">
+      <li>Exclusive Design: Iconic Sanji back print</li>
+      <li>Color: Deep Purple Grunge – bold & edgy</li>
+      <li>Material: 100% premium cotton</li>
+      <li>Fabric Weight: 250 GSM – soft yet durable</li>
+      <li>Fit: Oversized, relaxed one-piece fit</li>
+      <li>Limited Stock: Grab yours before it’s gone!</li>
+      <li>Style: Streetwear-ready, perfect for standout looks</li>
+    </ul>
+    <div class="size-selector stagger-item" role="radiogroup" aria-label="Select size" style="animation-delay:.24s;">
+      <button class="size-btn active" data-size="S" type="button" aria-pressed="true">S</button>
+      <button class="size-btn" data-size="M" type="button" aria-pressed="false">M</button>
+      <button class="size-btn" data-size="L" type="button" aria-pressed="false">L</button>
+      <button class="size-btn" data-size="XL" type="button" aria-pressed="false">XL</button>
+      
+    </div>
+    <div class="actions stagger-item" style="animation-delay:.28s;">
+      <button type="button" onclick="addCurrentToCart('sanji')">Add to Cart</button>
+      <button type="button" class="secondary-btn" onclick="openPreorderFromModal('sanji')">Preorder</button>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Gyomei Modal -->
+<div class="modal" id="gyomeiModal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('gyomeiModal')" role="button" aria-label="Close modal">&times;</span>
+    <div class="image-gallery zoom-container stagger-item" data-product="gyomei" style="animation-delay:.02s;">
+      <div class="zoom-inner">
+        <img src="gyomei-main.png" class="gallery-image active" alt="Gyomei T-Shirt Front">
+        <img src="gyomei-1.jpg" class="gallery-image" alt="Gyomei T-Shirt Back">
+        <img src="gyomei-2.jpg" class="gallery-image" alt="Gyomei T-Shirt Detail">
+        <video class="gallery-video" muted loop>
+          <source src="gyomei-video.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="slide-counter" data-counter="gyomei">1 / 4</div>
+    </div>
+    <div class="thumb-strip stagger-item" data-thumbs="gyomei" style="animation-delay:.08s;"></div>
+    <h2 class="stagger-item" style="animation-delay:.12s;">⚡ Gyomei Oversized T-Shirt – Black Acid Wash Edition (Limited!)</h2>
+    <h3 class="stagger-item" style="animation-delay:.16s;"><span style="text-decoration:line-through; color:#999; margin-right:8px;">₹1,299</span>₹999 <span style="background:#ff3b30; color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-left:8px;">23% OFF</span></h3>
+    <ul class="stagger-item" style="animation-delay:.2s;">
+      <li>Back Print: Iconic Gyomei – bold & powerful design</li>
+      <li>Color: Black Acid Wash – edgy streetwear vibe</li>
+      <li>Fabric: 100% Premium Cotton</li>
+      <li>Weight: 250 GSM – thick & durable</li>
+      <li>Fit: Oversized, relaxed one-piece style</li>
+      <li>Limited Edition – exclusive GRX drop</li>
+    </ul>
+    <div class="size-selector stagger-item" role="radiogroup" aria-label="Select size" style="animation-delay:.24s;">
+      <button class="size-btn active" data-size="S" type="button" aria-pressed="true">S</button>
+      <button class="size-btn" data-size="M" type="button" aria-pressed="false">M</button>
+      <button class="size-btn" data-size="L" type="button" aria-pressed="false">L</button>
+      <button class="size-btn" data-size="XL" type="button" aria-pressed="false">XL</button>
+    </div>
+    <div class="actions stagger-item" style="animation-delay:.28s;">
+      <button type="button" onclick="addCurrentToCart('gyomei')">Add to Cart</button>
+      <button type="button" class="secondary-btn" onclick="openPreorderFromModal('gyomei')">Preorder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rengoku Modal -->
+<div class="modal" id="rengokuModal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('rengokuModal')" role="button" aria-label="Close modal">&times;</span>
+    <div class="image-gallery zoom-container stagger-item" data-product="rengoku" style="animation-delay:.02s;">
+      <div class="zoom-inner">
+        <img src="rengoku-main.png" class="gallery-image active" alt="Rengoku T-Shirt Front">
+        <img src="rengoku-1.jpg" class="gallery-image" alt="Rengoku T-Shirt Back">
+        <img src="rengoku-2.jpg" class="gallery-image" alt="Rengoku T-Shirt Detail">
+        <video class="gallery-video" muted loop>
+          <source src="rengoku-video.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="slide-counter" data-counter="rengoku">1 / 4</div>
+    </div>
+    <div class="thumb-strip stagger-item" data-thumbs="rengoku" style="animation-delay:.08s;"></div>
+    <h2 class="stagger-item" style="animation-delay:.12s;">🔥 Rengoku Oversized T-Shirt – Red & Black Tie-Dye Edition | BY GRX</h2>
+    <h3 class="stagger-item" style="animation-delay:.16s;"><span style="text-decoration:line-through; color:#999; margin-right:8px;">₹1,299</span>₹999 <span style="background:#ff3b30; color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-left:8px;">23% OFF</span></h3>
+    <ul class="stagger-item" style="animation-delay:.2s;">
+      <li>Back Print: Fierce Rengoku – flame-inspired artwork</li>
+      <li>Texture: Red & Black Tie-Dye – fiery streetwear look</li>
+      <li>Fabric: 100% Premium Cotton</li>
+      <li>Weight: 250 GSM – heavy & lasting quality</li>
+      <li>Fit: Oversized, relaxed one-piece silhouette</li>
+      <li>Limited Stock – GRX exclusive fire drop</li>
+    </ul>
+    <div class="size-selector stagger-item" role="radiogroup" aria-label="Select size" style="animation-delay:.24s;">
+      <button class="size-btn active" data-size="S" type="button" aria-pressed="true">S</button>
+      <button class="size-btn" data-size="M" type="button" aria-pressed="false">M</button>
+      <button class="size-btn" data-size="L" type="button" aria-pressed="false">L</button>
+      <button class="size-btn" data-size="XL" type="button" aria-pressed="false">XL</button>
+    </div>
+    <div class="actions stagger-item" style="animation-delay:.28s;">
+      <button type="button" onclick="addCurrentToCart('rengoku')">Add to Cart</button>
+      <button type="button" class="secondary-btn" onclick="openPreorderFromModal('rengoku')">Preorder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tanjiro Modal -->
+<div class="modal" id="tanjroModal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('tanjroModal')" role="button" aria-label="Close modal">&times;</span>
+    <div class="image-gallery zoom-container stagger-item" data-product="tanjro" style="animation-delay:.02s;">
+      <div class="zoom-inner">
+        <img src="tanjiro-main.png" class="gallery-image active" alt="Tanjiro T-Shirt Front">
+        <img src="tanjiro-1.jpg" class="gallery-image" alt="Tanjiro T-Shirt Back">
+        <img src="tanjiro-2.jpg" class="gallery-image" alt="Tanjiro T-Shirt Detail">
+        <video class="gallery-video" muted loop>
+          <source src="tanjiro-video.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="slide-counter" data-counter="tanjiro">1 / 4</div>
+    </div>
+    <div class="thumb-strip stagger-item" data-thumbs="tanjro" style="animation-delay:.08s;"></div>
+    <h2 class="stagger-item" style="animation-delay:.12s;">🌑 Tanjiro Oversized T-Shirt – Solid Black Edition | BY GRX</h2>
+    <h3 class="stagger-item" style="animation-delay:.16s;"><span style="text-decoration:line-through; color:#999; margin-right:8px;">₹1,299</span>₹999 <span style="background:#ff3b30; color:#fff; padding:2px 6px; border-radius:4px; font-size:0.8rem; margin-left:8px;">23% OFF</span></h3>
+    <ul class="stagger-item" style="animation-delay:.2s;">
+      <li>Back Print: Iconic Tanjiro – sharp & determined design</li>
+      <li>Color: Solid Black – timeless & versatile</li>
+      <li>Fabric: 100% Premium Cotton</li>
+      <li>Weight: 250 GSM – thick & premium feel</li>
+      <li>Fit: Oversized, relaxed one-piece style</li>
+      <li>Exclusive Edition – limited GRX release</li>
+    </ul>
+    <div class="size-selector stagger-item" role="radiogroup" aria-label="Select size" style="animation-delay:.24s;">
+      <button class="size-btn active" data-size="S" type="button" aria-pressed="true">S</button>
+      <button class="size-btn" data-size="M" type="button" aria-pressed="false">M</button>
+      <button class="size-btn" data-size="L" type="button" aria-pressed="false">L</button>
+      <button class="size-btn" data-size="XL" type="button" aria-pressed="false">XL</button>
+    </div>
+    <div class="actions stagger-item" style="animation-delay:.28s;">
+      <button type="button" onclick="addCurrentToCart('tanjiro')">Add to Cart</button>
+      <button type="button" class="secondary-btn" onclick="openPreorderFromModal('tanjro')">Preorder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cart Sidebar -->
+<aside class="cart-sidebar" id="cartSidebar" aria-hidden="true">
+  <div class="cart-header">
+    <h3>Your Cart</h3>
+    <button class="cart-close-btn" onclick="toggleCart()" type="button" aria-label="Close cart">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="cart-items" id="cartItems"></div>
+
+  <div class="cart-footer">
+    <div id="shippingBanner" class="shipping-banner">
+      <div class="shipping-track">
+        <div class="shipping-progress" id="shippingProgress"></div>
+        <div class="shipping-truck" id="shippingTruck">🚚</div>
+      </div>
+      <p class="banner-text" id="shippingBannerText"></p>
+    </div>
+    <div class="total" id="cartTotal">Total: ₹0</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button onclick="preorderCart()" id="checkoutBtn" type="button">Preorder All</button>
+      <button class="secondary-btn" onclick="clearCart()" type="button">Clear Cart</button>
+    </div>
+  </div>
+</aside>
+
+<section class="about" id="about">
+  <h2>About GRX</h2>
+  <p>GRX is not just a clothing label, it’s a culture. Born in Pune, designed for the streets of India and beyond. Our oversized fits, bold designs, and premium fabrics redefine comfort and individuality. Each piece is made for creators, dreamers, and hustlers.</p>
+</section>
+
+<div class="separator"></div>
+<section class="contact" id="contact">
+  <h2>Contact Us</h2>
+  <p>Reach out to us via Instagram or Email for inquiries and collaborations.</p>
+
+  <!-- Instagram -->
+  <a href="https://www.instagram.com/griitxstores?igsh=enljNHR3dnE4enZj" target="_blank" class="social-icon-link">
+    <img src="https://cdn-icons-png.flaticon.com/512/1384/1384063.png" alt="Instagram">
+  </a>
+
+  <!-- Email -->
+  <a href="mailto:grx.customer@gmail.com" class="social-icon-link">
+    <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email">
+  </a>
+</section>
+
+<style>
+  .social-icon-link img {
+    height: 28px;
+    width: 28px;
+    margin: 0 8px;
+  }
+</style>
+
+<footer>
+  <p>© 2025 Griitx Studios. All Rights Reserved.</p>
+</footer>
+
+<button id="scrollTopBtn" onclick="scrollToTop()" type="button" aria-label="Scroll to top">↑</button>
+
+<!-- Toast notification -->
+<div id="toast" aria-live="polite" aria-atomic="true" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:10px 16px; border-radius:24px; opacity:0; transition:opacity .3s ease; pointer-events:none; z-index:4000;">Added to cart</div>
+
+<!-- Preorder ID Toast -->
+<div id="preorderToast" aria-live="polite" aria-atomic="true" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:15px 20px; border-radius:12px; opacity:0; transition:opacity .3s ease; z-index:4000; max-width:90%; text-align:center;">
+  <div id="preorderToastMessage"></div>
+  <div style="margin-top:8px;">
+    <button id="copyIdBtn" onclick="copyPreorderId()" style="background:#ff3b30; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-right:8px;">Copy ID</button>
+    <button onclick="closePreorderToast()" style="background:#666; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">Close</button>
+  </div>
+</div>
+
+<!-- Preorder Form Modal -->
+<div class="modal" id="preorderModal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('preorderModal')" role="button" aria-label="Close modal">&times;</span>
+    <h2>Preorder</h2>
+    <p style="margin-bottom:12px; color:#555;">We’ll notify you when your item is ready.</p>
+    <form id="preorderForm" onsubmit="submitPreorder(event)">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;">
+        <input type="text" id="po_name" name="name" placeholder="Full Name" required style="padding:10px 12px; border-radius:10px; border:1px solid #ccc; min-width:240px;">
+        <input type="tel" id="po_phone" name="phone" placeholder="Phone" required style="padding:10px 12px; border-radius:10px; border:1px solid #ccc; min-width:200px;">
+        <input type="email" id="po_email" name="email" placeholder="Email (optional)" style="padding:10px 12px; border-radius:10px; border:1px solid #ccc; min-width:240px;">
+      </div>
+      <textarea id="po_notes" name="notes" placeholder="Notes (address, preferences, etc.)" rows="3" style="width:100%; max-width:580px; padding:10px 12px; border-radius:10px; border:1px solid #ccc;"></textarea>
+      <div class="actions" style="margin-top:14px;">
+        <button type="submit">Submit Preorder</button>
+        <button type="button" class="secondary-btn" onclick="closeModal('preorderModal')">Cancel</button>
+      </div>
+      <input type="hidden" id="po_payload" name="payload" value="">
+    </form>
+    </div>
+  </div>
+
+<script>
+// ========== CONFIG ==========
+const PRODUCTS = {
+  "gyomei": {
+    id: "gyomei",
+    img: "gyomei-main.png",
+    name: "Gyomei Oversized T-Shirt – Black Acid Wash Edition",
+    originalPrice: 1299,
+    price: 999
+  },
+  "sanji": {
+    id: "sanji",
+    img: "sanji-main.png",
+    name: "Sanji Oversized T-Shirt – Purple Grunge Edition",
+    originalPrice: 1299,
+    price: 999
+  },
+  "tanjro": {
+    id: "tanjro",
+    img: "tanjiro-main.png", // tanjiro
+    name: "Tanjro Oversized T-Shirt – Solid Black Edition | BY GRX",
+    originalPrice: 1299,
+    price: 999
+  },
+  "rengoku": {
+    id: "rengoku",
+    img: "rengoku-main.png",
+    name: "Rengoku Oversized T-Shirt – Red & Black Tie-Dye Edition | BY GRX",
+    originalPrice: 1299,
+    price: 999
+  }
+};
+
+function renderProductsGrid(){
+  const grid = document.getElementById('productsGrid');
+  const items = Object.values(PRODUCTS);
+  grid.innerHTML = items.map(p=>{
+    const discount = p.originalPrice && p.originalPrice > p.price ? Math.round((1 - p.price/p.originalPrice)*100) : 0;
+    const modalId = `${p.id}Modal`;
+    return `
+    <div class="card" data-modal="${modalId}" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
+      <img src="${p.img}" alt="${p.name}">
+      <h3>${p.name}</h3>
+      <p class="price">
+        ${p.originalPrice ? `<span class="original-price">₹${p.originalPrice.toLocaleString()}</span>` : ''}₹${p.price.toLocaleString()}
+        ${discount ? `<span class="discount-badge">${discount}% OFF</span>` : ''}
+      </p>
+    </div>`;
+  }).join('');
+}
+
+// ========== CART LOGIC ==========
+// cart keyed by composite key `${productId}_${size}`
+let cart = JSON.parse(localStorage.getItem('griitx_cart') || '{}');
+
+function saveCart(){
+  localStorage.setItem('griitx_cart', JSON.stringify(cart));
+  renderCart();
+}
+
+function addToCart(productId, size, qty = 1){
+  if(!PRODUCTS[productId]) return;
+  const selectedSize = size || 'S';
+  const key = `${productId}_${selectedSize}`;
+  if(!cart[key]) cart[key] = { ...PRODUCTS[productId], id: key, baseId: productId, size: selectedSize, qty:0 };
+  cart[key].qty += qty;
+  saveCart();
+}
+
+function removeFromCart(cartId){
+  const itemEl = document.querySelector(`.cart-item[data-cart-id="${cartId}"]`);
+  if (itemEl) {
+    itemEl.classList.add('removing');
+    setTimeout(() => {
+      delete cart[cartId];
+      saveCart(); // This will call renderCart() which will rebuild the list
+    }, 350); // Match animation duration
+  } else {
+    delete cart[cartId];
+    saveCart();
+  }
+}
+
+function updateQty(cartId, qty){
+  if(!cart[cartId]) return;
+  cart[cartId].qty = Math.max(1, qty);
+  saveCart();
+}
+
+function clearCart(){
+  cart = {};
+  saveCart();
+}
+
+function cartItemCount(){
+  return Object.values(cart).reduce((s,i)=>s + (i.qty||0), 0);
+}
+
+function cartTotalAmount(){
+  return Object.values(cart).reduce((s,i)=>s + (i.qty * i.price), 0);
+}
+
+function renderCart(){
+  const cartItemsEl = document.getElementById('cartItems');
+  cartItemsEl.innerHTML = '';
+  const items = Object.values(cart);
+
+  if(items.length === 0){
+    cartItemsEl.innerHTML = `
+      <div class="cart-empty-state">
+        <i class="fas fa-shopping-bag"></i>
+        <h4>Your cart is empty</h4>
+        <p>Looks like you haven't added anything yet.</p>
+      </div>
+    `;
+  } else {
+    items.forEach(item =>{
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+      div.dataset.cartId = item.id;
+      div.innerHTML = `
+        <img src="${item.img}" alt="${item.name}" class="cart-item-img">
+        <div class="cart-item-details">
+          <h4>${item.name}</h4>
+          <p class="size">Size: ${item.size}</p>
+          <p class="price">₹${item.price}</p>
+        </div>
+        <div class="cart-item-actions">
+          <div class="qty-controls">
+            <button class="small-btn" onclick="changeQty('${item.id}', -1)">-</button>
+            <span class="qty">${item.qty}</span>
+            <button class="small-btn" onclick="changeQty('${item.id}', 1)">+</button>
+          </div>
+          <button class="remove-btn" onclick="removeFromCart('${item.id}')">Remove</button>
+        </div>
+      `;
+      cartItemsEl.appendChild(div);
+    });
+  }
+
+  // Update totals and shipping banner
+  document.getElementById('cartCount').textContent = cartItemCount();
+  const total = cartTotalAmount();
+  document.getElementById('cartTotal').textContent = 'Total: ₹' + total;
+  
+  // New animated shipping banner logic
+  const threshold = 1499;
+  const remaining = threshold - total;
+  const progress = Math.min(100, Math.round((total / threshold) * 100));
+  const banner = document.getElementById('shippingBanner');
+  const progressBar = document.getElementById('shippingProgress');
+  const truck = document.getElementById('shippingTruck');
+  const bannerText = document.getElementById('shippingBannerText');
+
+  if (banner && progressBar && truck && bannerText) {
+    progressBar.style.width = progress + '%';
+    if (total >= threshold) {
+      banner.classList.add('unlocked');
+      bannerText.innerHTML = `<strong>You've got FREE shipping!</strong>`;
+      truck.style.left = `calc(100% - 20px)`;
+    } else {
+      banner.classList.remove('unlocked');
+      bannerText.innerHTML = `Add <strong>₹${remaining}</strong> more for FREE shipping!`;
+      truck.style.left = `${progress}%`;
+    }
+  }
+}
+
+function changeQty(id, diff){
+  if(!cart[id]) return;
+  cart[id].qty = Math.max(1, cart[id].qty + diff);
+  saveCart();
+}
+
+// ========== IMAGE GALLERY FUNCTIONS ==========
+let currentImageIndex = {};
+
+function changeImage(productId, direction) {
+  const gallery = document.querySelector(`[data-product="${productId}"]`);
+  if (!gallery) return;
+  const slides = gallery.querySelectorAll('.gallery-image, .gallery-video');
+  
+  if (currentImageIndex[productId] === undefined) currentImageIndex[productId] = 0;
+  
+  currentImageIndex[productId] += direction;
+  
+  if (currentImageIndex[productId] >= slides.length) {
+    currentImageIndex[productId] = 0;
+  } else if (currentImageIndex[productId] < 0) {
+    currentImageIndex[productId] = slides.length - 1;
+  }
+  
+  showImage(productId, currentImageIndex[productId]);
+
+  // Update counter
+  updateSlideCounter(productId, slides.length);
+}
+
+function goToImage(productId, index) {
+  currentImageIndex[productId] = index;
+  showImage(productId, index);
+}
+
+function showImage(productId, index) {
+  const gallery = document.querySelector(`[data-product="${productId}"]`);
+  if (!gallery) return;
+  const slides = gallery.querySelectorAll('.gallery-image, .gallery-video');
+  
+  slides.forEach((el, i) => {
+    el.classList.toggle('active', i === index);
+    // Pause videos when not active
+    if (el.tagName === 'VIDEO') {
+      if (i === index) {
+        el.play().catch(()=>{});
+      } else {
+        el.pause();
+        el.currentTime = 0;
+      }
+    }
+  });
+
+  // Sync thumbnails
+  const thumbsWrap = document.querySelector(`.thumb-strip[data-thumbs="${productId}"]`);
+  if (thumbsWrap) {
+    thumbsWrap.querySelectorAll('.thumb').forEach((t,i)=>{
+      t.classList.toggle('active', i === index);
+    });
+    // ensure active thumb is in view
+    const active = thumbsWrap.querySelector('.thumb.active');
+    if (active && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }
+
+  // Update counter
+  updateSlideCounter(productId, slides.length);
+}
+
+// Touch/swipe support for mobile
+function addSwipeSupport() {
+  document.querySelectorAll('.image-gallery').forEach(gallery => {
+    const inner = gallery.querySelector('.zoom-inner') || gallery;
+    let startX = 0;
+    let endX = 0;
+    let startY = 0;
+    let endY = 0;
+    
+    gallery.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    });
+    
+    gallery.addEventListener('touchend', (e) => {
+      endX = e.changedTouches[0].clientX;
+      endY = e.changedTouches[0].clientY;
+      const productId = gallery.dataset.product;
+      
+      const dx = startX - endX;
+      const dy = startY - endY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 50) {
+          changeImage(productId, 1);
+        } else if (dx < -50) {
+          changeImage(productId, -1);
+        }
+      }
+    });
+  });
+}
+
+// ========== UI & MODALS ==========
+document.addEventListener('click', function(e){
+  const card = e.target.closest('.card');
+  if(!card) return;
+  const modalId = card.dataset.modal;
+  const modal = document.getElementById(modalId);
+  if(!modal) return;
+  modal.classList.add('open');
+
+  // Reset gallery to first image
+  const productId = card.dataset.id;
+  currentImageIndex[productId] = 0;
+  showImage(productId, 0);
+  // Apply current stock to size buttons
+  try { applyStockToModalSizes(productId, modal); } catch(_) {}
+
+  modal.dataset.current = productId;
+  // ensure thumbnails exist/refresh active state
+  try { buildThumbnails(productId); } catch(_) {}
+  // reset size selection to default S on open
+  const sizeButtons = modal.querySelectorAll('.size-btn');
+  sizeButtons.forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('aria-pressed','false');
+    if(btn.getAttribute('data-size') === 'S'){
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed','true');
+    }
+  });
+  // update counter initial
+  const slides = modal.querySelectorAll('.gallery-image, .gallery-video');
+  updateSlideCounter(productId, slides.length);
+});
+
+function closeModal(id){
+  const modal = document.getElementById(id);
+  if(!modal) return;
+  const video = modal.querySelector('video');
+  if (video) { video.pause(); video.currentTime = 0; }
+  // reset zoom transform
+  const zi = modal.querySelector('.zoom-inner');
+  if (zi) { zi.style.transform = ''; zi.dataset.scale = '1'; zi.dataset.tx = '0'; zi.dataset.ty = '0'; }
+  modal.classList.remove('open');
+}
+
+window.onclick = function(event){
+  document.querySelectorAll('.modal').forEach(modal => {
+    if(event.target == modal){
+      closeModal(modal.id);
+    }
+  });
+}
+
+// Size selector toggling (event delegation)
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.size-btn');
+  if(!btn) return;
+  const modal = btn.closest('.modal');
+  if(!modal) return;
+  const group = modal.querySelectorAll('.size-btn');
+  group.forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed','true');
+});
+
+// ====== Zoom / Pan (double-click to zoom, drag to pan, wheel to zoom) ======
+document.addEventListener('dblclick', function(e){
+  const zi = e.target.closest('.modal')?.querySelector('.zoom-inner');
+  if(!zi) return;
+  const rect = zi.getBoundingClientRect();
+  const scale = parseFloat(zi.dataset.scale || '1');
+  const next = scale > 1 ? 1 : 2;
+  zi.dataset.scale = String(next);
+  const tx = parseFloat(zi.dataset.tx || '0');
+  const ty = parseFloat(zi.dataset.ty || '0');
+  zi.style.transform = `translate(${tx}px, ${ty}px) scale(${next})`;
+});
+
+let panState = { active:false, startX:0, startY:0, tx:0, ty:0 };
+document.addEventListener('mousedown', function(e){
+  const zi = e.target.closest('.modal')?.querySelector('.zoom-inner');
+  if(!zi) return;
+  const scale = parseFloat(zi.dataset.scale || '1');
+  if (scale <= 1) return;
+  panState.active = true; panState.startX = e.clientX; panState.startY = e.clientY;
+  panState.tx = parseFloat(zi.dataset.tx || '0'); panState.ty = parseFloat(zi.dataset.ty || '0');
+  zi.classList.add('grabbing');
+  e.preventDefault();
+});
+document.addEventListener('mousemove', function(e){
+  if(!panState.active) return;
+  const zi = document.querySelector('.modal.open .zoom-inner');
+  if(!zi) return;
+  const dx = e.clientX - panState.startX;
+  const dy = e.clientY - panState.startY;
+  const tx = panState.tx + dx;
+  const ty = panState.ty + dy;
+  zi.dataset.tx = String(tx); zi.dataset.ty = String(ty);
+  const scale = parseFloat(zi.dataset.scale || '1');
+  zi.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+});
+document.addEventListener('mouseup', function(){
+  const zi = document.querySelector('.modal.open .zoom-inner');
+  if(zi) zi.classList.remove('grabbing');
+  panState.active = false;
+});
+
+document.addEventListener('wheel', function(e){
+  const zi = e.target.closest('.modal')?.querySelector('.zoom-inner');
+  if(!zi) return;
+  e.preventDefault();
+  const scale = parseFloat(zi.dataset.scale || '1');
+  const delta = e.deltaY > 0 ? -0.1 : 0.1;
+  const next = Math.min(3, Math.max(1, scale + delta));
+  zi.dataset.scale = String(next);
+  const tx = parseFloat(zi.dataset.tx || '0');
+  const ty = parseFloat(zi.dataset.ty || '0');
+  zi.style.transform = `translate(${tx}px, ${ty}px) scale(${next})`;
+}, { passive: false });
+
+const scrollBtn = document.getElementById('scrollTopBtn');
+function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+
+// ========== CART UI Helpers ==========
+function showToast(message){
+  const toast = document.getElementById('toast');
+  if(!toast) return;
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>{ toast.style.opacity = '0'; }, 1800);
+}
+
+function getSelectedSizeForModal(modal){
+  const active = modal ? modal.querySelector('.size-btn.active') : null;
+  return active ? active.getAttribute('data-size') : 'S';
+}
+
+async function addCurrentToCart(productId){
+  const openModal = document.querySelector('.modal.open');
+  const size = getSelectedSizeForModal(openModal);
+  // prevent add if out of stock
+  try {
+    const s = await window.griitxDB.getProductStock(productId);
+    if ((s[size] || 0) <= 0) { showToast('Selected size is out of stock'); return; }
+  } catch(e) { console.error("Stock check failed:", e); }
+  addToCart(productId, size, 1);
+  showToast('Added to cart (' + size + ')');
+  if(openModal) closeModal(openModal.id);
+}
+
+// Preorder from modal for single item
+function openPreorderFromModal(productId){
+  const product = PRODUCTS[productId];
+  if(!product) return;
+  const openModal = document.querySelector('.modal.open');
+  const size = getSelectedSizeForModal(openModal);
+  const item = { id: productId, name: product.name, size, qty: 1, price: product.price };
+  const payload = { type: 'single', items: [item], total: product.price };
+  const form = document.getElementById('preorderForm');
+  form.reset();
+  document.getElementById('po_payload').value = JSON.stringify(payload);
+  closeModal(openModal ? openModal.id : '');
+  document.getElementById('preorderModal').classList.add('open');
+}
+
+function toggleCart(){
+  const sidebar = document.getElementById('cartSidebar');
+  const isOpen = sidebar.classList.toggle('open');
+  sidebar.setAttribute('aria-hidden', !isOpen);
+}
+
+// Preorder entire cart
+function preorderCart(){
+  const items = Object.values(cart);
+  if(items.length === 0){ showToast('Your cart is empty'); return; }
+  const payload = {
+    type: 'cart',
+    items: items.map(it => ({ id: it.baseId || it.id, name: it.name, size: it.size, qty: it.qty, price: it.price })),
+    total: cartTotalAmount()
+  };
+  const form = document.getElementById('preorderForm');
+  form.reset();
+  document.getElementById('po_payload').value = JSON.stringify(payload);
+  document.getElementById('preorderModal').classList.add('open');
+}
+
+renderCart();
+
+// ===== Build thumbnails for each modal gallery =====
+function buildThumbnails(productId){
+  const thumbsWrap = document.querySelector(`.thumb-strip[data-thumbs="${productId}"]`);
+  const gallery = document.querySelector(`.image-gallery[data-product="${productId}"] .zoom-inner`);
+  if (!thumbsWrap || !gallery) return;
+  const slides = gallery.querySelectorAll('.gallery-image, .gallery-video');
+  thumbsWrap.innerHTML = '';
+  slides.forEach((slide, idx)=>{
+    const t = document.createElement('div');
+    t.className = 'thumb' + (slide.classList.contains('active') ? ' active' : '');
+    if (slide.tagName === 'IMG') {
+      const img = document.createElement('img');
+      img.src = slide.getAttribute('src');
+      img.alt = 'thumb';
+      t.appendChild(img);
+    } else {
+      const v = document.createElement('video');
+      v.muted = true; v.loop = true;
+      const src = slide.querySelector('source');
+      if (src) v.src = src.getAttribute('src');
+      t.appendChild(v);
+    }
+    t.addEventListener('click', ()=> goToImage(productId, idx));
+    thumbsWrap.appendChild(t);
+  });
+}
+
+['sanji','gyomei','rengoku','tanjiro'].forEach(buildThumbnails);
+
+function updateSlideCounter(productId, total){
+  const counter = document.querySelector(`.slide-counter[data-counter="${productId}"]`);
+  if (!counter) return;
+  const current = (currentImageIndex[productId] ?? 0) + 1;
+  counter.textContent = `${current} / ${total}`;
+}
+
+// ===== STOCK UI HELPERS =====
+async function applyStockToModalSizes(productId, modal){
+  if (!modal || !window.griitxDB) return;
+  const stock = await window.griitxDB.getProductStock(productId);
+  modal.querySelectorAll('.size-btn').forEach(btn => {
+    const size = btn.getAttribute('data-size');
+    const qty = stock[size] || 0;
+    btn.disabled = qty <= 0;
+    btn.style.opacity = qty <= 0 ? 0.5 : 1;
+    btn.style.cursor = qty <= 0 ? 'not-allowed' : 'pointer';
+    btn.title = qty <= 0 ? `${size} - Out of stock` : `${size} - Available`;
+  });
+}
+
+async function refreshStockUI(){
+  const openModal = document.querySelector('.modal.open');
+  if (openModal) {
+    const pid = openModal.dataset.current;
+    await applyStockToModalSizes(pid, openModal);
+  }
+  // You could also re-render the main product grid here to show "SOLD OUT" badges
+}
+
+// cross-tab stock update listener
+window.addEventListener('storage', (e)=>{
+  if (e.key === 'griitx_stock_v1' || e.key === 'griitx_stock_broadcast') {
+    refreshStockUI();
+  }
+});
+
+// ========== Header buttons & mobile menu ==========
+document.getElementById('cartBtn').addEventListener('click', toggleCart);
+
+const hamburger = document.getElementById('hamburger');
+const mainNav = document.getElementById('mainNav');
+
+hamburger.addEventListener('click', () => {
+  // Toggle the 'open' class for both the nav and the hamburger icon
+  mainNav.classList.toggle('open');
+  hamburger.classList.toggle('open');
+});
+
+document.querySelectorAll('#mainNav a').forEach(a => {
+  a.addEventListener('click', function(e){
+    e.preventDefault();
+    document.querySelector(this.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+    // Close the menu after a link is clicked
+    mainNav.classList.remove('open');
+    hamburger.classList.remove('open');
+  });
+});
+
+hamburger.addEventListener('keypress', (e)=>{ if(e.key==='Enter') hamburger.click(); });
+
+// ========== SEARCH FUNCTIONALITY ==========
+const searchBtn = document.getElementById('searchBtn');
+const searchInput = document.getElementById('searchInput');
+
+searchBtn.addEventListener('click', () => {
+  if (searchInput.style.display === "none" || searchInput.style.display === "") {
+    searchInput.style.display = "inline-block";
+    searchInput.focus();
+  } else {
+    searchInput.style.display = "none";
+    searchInput.value = "";
+    filterProducts(""); // reset
+  }
+});
+
+searchInput.addEventListener('keyup', () => {
+  filterProducts(searchInput.value.toLowerCase());
+});
+
+function filterProducts(query) {
+  const cards = document.querySelectorAll(".card");
+  cards.forEach(card => {
+    const name = card.querySelector("h3").textContent.toLowerCase();
+    card.style.display = name.includes(query) ? "" : "none";
+  });
+}
+
+// ========== Preorder submit ==========
+async function submitPreorder(e){
+  e.preventDefault();
+  const name = document.getElementById('po_name').value.trim();
+  const phone = document.getElementById('po_phone').value.trim();
+  const email = document.getElementById('po_email').value.trim();
+  const notes = document.getElementById('po_notes').value.trim();
+  const payload = document.getElementById('po_payload').value;
+
+  if(!name || !phone) {
+    alert('Name and phone are required');
+    return;
+  }
+
+  // Validate email format
+  if(email && !isValidEmail(email)) {
+    alert('Please enter a valid email address');
+    return;
+  }
+
+  // Validate phone number (10 digits)
+  if(!isValidPhone(phone)) {
+    alert('Please enter a valid 10-digit phone number');
+    return;
+  }
+
+  const preorder = {
+    name, phone, email, notes,
+    payload: JSON.parse(payload),
+    source: 'GRX_STORE_V1'
+  };
+
+  // Save to database and get the generated ID
+  const savedPreorder = await window.griitxDB.addPreorder(preorder);
+
+  // Show success message with preorder ID
+  showPreorderToast(savedPreorder.id);
+  closeModal('preorderModal');
+  clearCart(); // Clear the cart after successful preorder
+}
+
+// Validation functions
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function isValidPhone(phone) {
+  const phoneRegex = /^\d{10}$/;
+  return phoneRegex.test(phone.replace(/\D/g, '')); // Remove non-digits and check
+}
+
+// Preorder ID toast functions
+let currentPreorderId = null;
+
+function showPreorderToast(preorderId) {
+  currentPreorderId = preorderId;
+  const toast = document.getElementById('preorderToast');
+  const message = document.getElementById('preorderToastMessage');
+  
+  message.innerHTML = `
+    <div style="font-weight:700; margin-bottom:4px;">🎉 Preorder Submitted Successfully!</div>
+    <div style="font-size:14px; color:#ccc;">Your Preorder ID: <span style="color:#ff3b30; font-weight:700;">${preorderId}</span></div>
+    <div style="font-size:12px; color:#aaa; margin-top:4px;">Save this ID for tracking your order</div>
+  `;
+  
+  toast.style.opacity = '1';
+  toast.style.pointerEvents = 'auto';
+  
+  // Auto-close after 10 seconds
+  clearTimeout(window.__preorderToastTimer);
+  window.__preorderToastTimer = setTimeout(closePreorderToast, 10000);
+}
+
+function closePreorderToast() {
+  const toast = document.getElementById('preorderToast');
+  toast.style.opacity = '0';
+  toast.style.pointerEvents = 'none';
+  currentPreorderId = null;
+}
+
+function copyPreorderId() {
+  if (currentPreorderId) {
+    navigator.clipboard.writeText(currentPreorderId.toString()).then(() => {
+      const btn = document.getElementById('copyIdBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.style.background = '#4caf50';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '#ff3b30';
+      }, 2000);
+    }).catch(() => {
+      alert('Preorder ID: ' + currentPreorderId);
+    });
+  }
+}
+
+// Save cart on unload
+window.addEventListener('beforeunload', saveCart);
+
+// ===== INITIALIZE APP =====
+async function initializeApp() {
+  try {
+    renderProductsGrid();
+    addSwipeSupport(); // Initialize swipe after products are on the page
+  } catch (e) {
+    console.error("Failed to load products:", e);
+    // Optionally, display an error message to the user on the page
+  }
+}
+
+initializeApp(); // Run the app initialization
+</script>
+<script>
+  // Removed magnetic hover to improve click accuracy
+  // Product card scroll-reveal
+  (function(){
+    const observer = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    const initReveal = ()=>{
+      document.querySelectorAll('.card').forEach((card, i)=>{
+        card.classList.add('reveal');
+        card.style.transitionDelay = (i * 0.05) + 's';
+        observer.observe(card);
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initReveal);
+    } else {
+      initReveal();
+    }
+  })();
+  // ESC closes open modal or cart
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const openModal = document.querySelector('.modal.open');
+      if (openModal) {
+        closeModal(openModal.id);
+        return;
+      }
+      const sidebar = document.getElementById('cartSidebar');
+      if (sidebar && sidebar.classList.contains('open')) {
+        toggleCart();
+      }
+    }
+    // arrow navigation inside open modal
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const open = document.querySelector('.modal.open .image-gallery');
+      if (!open) return;
+      const pid = open.getAttribute('data-product');
+      if (!pid) return;
+      changeImage(pid, e.key === 'ArrowRight' ? 1 : -1);
+    }
+  });
+
+window.addEventListener("scroll", function() {
+  const header = document.querySelector("header");
+  const scrollBtn = document.getElementById('scrollTopBtn');
+  if (window.scrollY > 50) {
+    header.classList.add("scrolled");
+  } else {
+    header.classList.remove("scrolled");
+  }
+
+  // Scroll-to-top button visibility
+  if(document.body.scrollTop > 200 || document.documentElement.scrollTop > 200){
+    scrollBtn.style.display = "block";
+  } else {
+    scrollBtn.style.display = "none";
+  }
+});
+
+</script>
+</body>
+</html>

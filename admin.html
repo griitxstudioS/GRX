@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRX Studios | Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="database.js" defer></script>
+    
+    <!-- Firebase SDKs (v9 COMPAT version - easiest to integrate) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyC2hBbPCpE1dzXxMOyiaieB7toQnPILPoc",
+        authDomain: "griitx-store.firebaseapp.com",
+        projectId: "griitx-store",
+        storageBucket: "griitx-store.firebasestorage.app",
+        messagingSenderId: "369135787913",
+        appId: "1:369135787913:web:90cfde251842ef9a0c0b58",
+        measurementId: "G-JDQ435H50Z"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Make the database connection available to all scripts
+      window.auth = firebase.auth();
+      window.db = firebase.firestore(); 
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            color: #111;
+            min-height: 100vh;
+        }
+
+        /* Login Screen */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20000;
+        }
+
+        .login-box {
+            background: #222;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .login-box h2 { margin-bottom: 20px; }
+        .login-box input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #333;
+            color: white;
+        }
+        .login-box button {
+            width: 100%;
+        }
+        #loginError { color: #ff3b30; margin-top: 15px; font-weight: 600; }
+
+        /* Hide main content until logged in */
+        .admin-wrapper { display: none; }
+
+        .header {
+            background: linear-gradient(135deg, #111 0%, #333 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: #ff3b30;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            padding: 12px 16px;
+            border: 2px solid #444;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+            min-width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #ff3b30;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e6342a;
+            transform: translateY(-2px);
+        }
+
+        .btn-logout {
+            background: transparent;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #c62828;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b71c1c;
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ff3b30;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #111;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            color: #111;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .customer-info {
+            font-weight: 700;
+            color: #111;
+        }
+
+        .contact-info {
+            color: #666;
+        }
+
+        .contact-info .email {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .items-cell {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .items-cell:hover {
+            color: #ff3b30;
+        }
+
+        .total-amount {
+            font-weight: 700;
+            color: #ff3b30;
+            font-size: 16px;
+        }
+
+        .notes-cell {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .notes-cell:hover {
+            color: #ff3b30;
+        }
+
+        .action-btn {
+            background: #c62828;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #b71c1c;
+            transform: scale(1.05);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-data i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .no-data h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #999;
+        }
+
+        .no-data p {
+            color: #aaa;
+        }
+
+        .type-badge {
+            background: #111;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #ff3b30;
+            text-decoration: none;
+            font-weight: 700;
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #e6342a;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            .search-box {
+                min-width: 200px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table {
+                min-width: 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="login-box">
+            <h2><i class="fas fa-lock"></i> Admin Login</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <p id="loginError" style="display: none;"></p>
+        </div>
+    </div>
+
+    <!-- Main Admin Content (hidden by default) -->
+    <div id="adminWrapper" class="admin-wrapper">
+        <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-fire"></i>
+                <h1>GRX Command</h1>
+            </div>
+            <div class="controls">
+                <input type="text" id="searchInput" class="search-box" placeholder="Search by Order ID...">
+                <button onclick="exportData()" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+                <button onclick="clearAllData()" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+                <button onclick="logout()" class="btn btn-secondary btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <a href="index.html" target="_blank" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
+        </a>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPreorders">0</div>
+                <div class="stat-label">Total Preorders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayPreorders">0</div>
+                <div class="stat-label">Today's Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRevenue">₹0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="lowStockCount">0</div>
+                <div class="stat-label">Low/Zero Stock Sizes</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header" style="gap: 20px;">
+                <h2>Preorders Management</h2>
+                <div id="filterInfo" style="color: #ff3b30; font-weight: 700; font-size: 14px;"></div>
+            </div>
+            
+            <div id="tableContent">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Type</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preordersTableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noDataMessage" class="no-data" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <h3>No preorders found</h3>
+                <p>Preorders will appear here once customers submit them</p>
+            </div>
+        </div>
+
+        <div class="table-container" style="margin-top: 24px;">
+            <div class="table-header">
+                <h2>Stock Management</h2>
+            </div>
+            <div id="stockContent" style="padding: 16px;">
+                <!-- Stock table -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th style="text-align:center;">S</th>
+                            <th style="text-align:center;">M</th>
+                            <th style="text-align:center;">L</th>
+                            <th style="text-align:center;">XL</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody"></tbody>
+                </table>
+                <div style="margin-top:12px; text-align:right;">
+                    <button class="btn btn-primary" onclick="saveAllStock()"><i class="fas fa-save"></i> Save Stock</button>
+                    <button class="btn btn-secondary" onclick="reloadStockUI()"><i class="fas fa-rotate"></i> Reload</button>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="orderDetailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;">
+            <button onclick="closeOrderDetail()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+            
+            <h2 style="margin-bottom: 20px; color: #111; border-bottom: 2px solid #ff3b30; padding-bottom: 10px;">Order Details</h2>
+            
+            <div id="orderDetailContent">
+                <!-- Order details will be loaded here -->
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <button onclick="closeOrderDetail()" class="btn btn-secondary">Close</button>
+                <button id="deleteOrderBtn" onclick="deleteCurrentOrder()" class="btn btn-danger" style="margin-left: 10px;">Delete Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== AUTHENTICATION =====
+        const loginForm = document.getElementById('loginForm');
+        const loginScreen = document.getElementById('loginScreen');
+        const adminWrapper = document.getElementById('adminWrapper');
+        const loginError = document.getElementById('loginError');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                await window.auth.signInWithEmailAndPassword(email, password);
+                // onAuthStateChanged will handle showing the UI
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginError.style.display = 'block';
+            }
+        });
+
+        async function logout() {
+            await window.auth.signOut();
+        }
+
+        // Listen for auth state changes
+        window.auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is logged in
+                loginScreen.style.display = 'none';
+                adminWrapper.style.display = 'block';
+                await loadPreorders(); // Now this only runs for logged-in users
+                setupSearch();         // Setup search listener
+                await reloadStockUI(); // Load stock data
+            } else {
+                // User is logged out
+                loginScreen.style.display = 'flex';
+                adminWrapper.style.display = 'none';
+            }
+        });
+
+        async function loadPreorders() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const allPreorders = await window.griitxDB.getAllPreorders();
+            const preorders = searchTerm ? allPreorders.filter(p => p.id.includes(searchTerm)) : allPreorders;
+            updateStats(allPreorders);
+            renderTable(preorders);
+            
+            // Update filter info
+            const filterInfo = document.getElementById('filterInfo');
+            if (searchTerm.trim()) {
+                filterInfo.textContent = `Showing ${preorders.length} of ${allPreorders.length} orders (Search: "${searchTerm}")`;
+            } else {
+                filterInfo.textContent = '';
+            }
+        }
+
+        async function updateStats(allPreorders) {
+            const total = allPreorders.length;
+            const today = new Date().toDateString();
+            const todayPreorders = allPreorders.filter(p => 
+                (p.createdAt.toDate ? p.createdAt.toDate() : new Date(p.createdAt)).toDateString() === today
+            ).length;
+            
+            const totalRevenue = allPreorders.reduce((sum, p) => 
+                sum + (parseFloat(p.payload?.total) || 0), 0
+            );
+
+            document.getElementById('totalPreorders').textContent = total;
+            document.getElementById('todayPreorders').textContent = todayPreorders;
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+            await updateLowStockStat();
+        }
+
+        function renderTable(preorders) {
+            const tbody = document.getElementById('preordersTableBody');
+            const noData = document.getElementById('noDataMessage');
+            
+            if (preorders.length === 0) {
+                tbody.innerHTML = '';
+                noData.style.display = 'block';
+                return;
+            }
+            
+            noData.style.display = 'none';
+            tbody.innerHTML = preorders.map(preorder => {
+                const items = preorder.payload?.items || [];
+                const itemsText = items.map(item => 
+                    `${item.name} (Size: ${item.size}) x${item.qty}`
+                ).join(', ');
+                
+                const date = preorder.createdAt.toDate ? preorder.createdAt.toDate() : new Date(preorder.createdAt);
+                const dateStr = date.toLocaleDateString();
+                const timeStr = date.toLocaleTimeString();
+                
+                return `
+                    <tr>
+                        <td>${preorder.id}</td>
+                        <td>
+                            <div>${dateStr}</div>
+                            <div style="font-size: 12px; color: #999;">${timeStr}</div>
+                        </td>
+                        <td>
+                            <div class="customer-info">${preorder.name}</div>
+                        </td>
+                        <td>
+                            <div class="contact-info">${preorder.phone}</div>
+                            ${preorder.email ? `<div class="email">${preorder.email}</div>` : ''}
+                        </td>
+                        <td>
+                            <span class="type-badge">${preorder.payload?.type || 'single'}</span>
+                        </td>
+                        <td class="items-cell" onclick="showOrderDetail('${preorder.id}')" title="Click to view full details">${itemsText}</td>
+                        <td class="total-amount">₹${preorder.payload?.total || 0}</td>
+                        <td class="notes-cell" onclick="showOrderDetail('${preorder.id}')" title="Click to view full details">${preorder.notes || ''}</td>
+                        <td>
+                            <button onclick="deletePreorder('${preorder.id}')" class="action-btn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ===== STOCK UI =====
+        async function reloadStockUI() {
+            const tbody = document.getElementById('stockTableBody');
+            const current = await window.griitxDB.getAllStock();
+            // Product list is now hardcoded to match the storefront
+            const productList = [
+                {
+                    id: "gyomei",
+                    name: "Gyomei Oversized T-Shirt – Black Acid Wash Edition"
+                },
+                {
+                    id: "sanji",
+                    name: "Sanji Oversized T-Shirt – Purple Grunge Edition"
+                },
+                {
+                    id: "tanjiro",
+                    name: "Tanjro Oversized T-Shirt – Solid Black Edition | BY GRX"
+                },
+                {
+                    id: "rengoku",
+                    name: "Rengoku Oversized T-Shirt – Red & Black Tie-Dye Edition | BY GRX"
+                }
+            ];
+
+            tbody.innerHTML = productList.map(p => {
+                const s = current[p.id] || { S: 0, M: 0, L: 0, XL: 0 };
+                return `
+                    <tr>
+                        <td style="font-weight:700;">${p.name}</td>
+                        <td style="text-align:center;"><input type="number" min="0" value="${s.S}" data-pid="${p.id}" data-size="S" style="width:70px; padding:6px; text-align:center;"></td>
+                        <td style="text-align:center;"><input type="number" min="0" value="${s.M}" data-pid="${p.id}" data-size="M" style="width:70px; padding:6px; text-align:center;"></td>
+                        <td style="text-align:center;"><input type="number" min="0" value="${s.L}" data-pid="${p.id}" data-size="L" style="width:70px; padding:6px; text-align:center;"></td>
+                        <td style="text-align:center;"><input type="number" min="0" value="${s.XL}" data-pid="${p.id}" data-size="XL" style="width:70px; padding:6px; text-align:center;"></td>
+                        <td>
+                            <button class="action-btn" onclick="saveRowStock('${p.id}')"><i class="fas fa-save"></i> Save Row</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function saveRowStock(productId) {
+            const inputs = Array.from(document.querySelectorAll(`input[data-pid='${productId}']`));
+            const stock = inputs.reduce((acc, el) => { acc[el.dataset.size] = parseInt(el.value,10)||0; return acc; }, {});
+            await window.griitxDB.setProductStock(productId, stock);
+            showNotification('Stock saved', 'success');
+            await updateLowStockStat();
+        }
+
+        async function saveAllStock() {
+            const inputs = Array.from(document.querySelectorAll(`#stockTableBody input[data-pid]`));
+            const grouped = {};
+            inputs.forEach(el => {
+                const pid = el.dataset.pid, size = el.dataset.size; const val = parseInt(el.value,10)||0;
+                if (!grouped[pid]) grouped[pid] = { S:0,M:0,L:0,XL:0 };
+                grouped[pid][size] = val;
+            });
+            for (const [pid, s] of Object.entries(grouped)) {
+                await window.griitxDB.setProductStock(pid, s);
+            }
+            showNotification('All stock saved', 'success');
+            await updateLowStockStat();
+        }
+
+        async function updateLowStockStat() {
+            const stock = await window.griitxDB.getAllStock();
+            let low = 0;
+            Object.values(stock).forEach(s => {
+                ['S','M','L','XL'].forEach(sz => { if ((s[sz]||0) === 0) low += 1; });
+            });
+            document.getElementById('lowStockCount').textContent = low;
+        }
+
+        function setupSearch() {
+            document.getElementById('searchInput').addEventListener('input', loadPreorders);
+        }
+
+        async function deletePreorder(id) {
+            if (!confirm('Are you sure you want to delete this preorder?')) return;
+            
+            try {
+                await window.griitxDB.deletePreorder(id);
+                await loadPreorders();
+                showNotification('Preorder deleted successfully', 'success');
+            } catch (e) {
+                showNotification('Failed to delete preorder', 'error');
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('Are you sure you want to delete ALL preorders? This cannot be undone!')) return;
+            await window.griitxDB.clearAll();
+            await loadPreorders();
+            showNotification('All preorders cleared', 'success');
+        }
+
+        async function exportData() {
+            const allPreorders = await window.griitxDB.getAllPreorders();
+            if (allPreorders.length === 0) {
+                showNotification('No data to export', 'error');
+                return;
+            }
+            
+            const csvContent = window.griitxDB.exportToCSV(allPreorders);
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `griitx_preorders_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 700;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                background: ${type === 'success' ? '#4caf50' : '#f44336'};
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Order Detail Modal Functions
+        let currentOrderId = null;
+
+        async function showOrderDetail(orderId) {
+            currentOrderId = orderId;
+            const preorders = await window.griitxDB.getAllPreorders();
+            const preorder = preorders.find(p => p.id == orderId);
+            
+            if (!preorder) return;
+
+            const items = preorder.payload?.items || [];
+            const date = preorder.createdAt.toDate ? preorder.createdAt.toDate() : new Date(preorder.createdAt);
+            
+            const detailHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #111; margin-bottom: 15px;">📋 Order Information</h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div><strong>Order ID:</strong> ${preorder.id}</div>
+                            <div><strong>Order Type:</strong> <span class="type-badge">${preorder.payload?.type || 'single'}</span></div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div><strong>Date:</strong> ${date.toLocaleDateString()}</div>
+                            <div><strong>Time:</strong> ${date.toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #111; margin-bottom: 15px;">👤 Customer Information</h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <div style="margin-bottom: 8px;"><strong>Name:</strong> ${preorder.name}</div>
+                        <div style="margin-bottom: 8px;"><strong>Phone:</strong> ${preorder.phone}</div>
+                        ${preorder.email ? `<div style="margin-bottom: 8px;"><strong>Email:</strong> ${preorder.email}</div>` : ''}
+                        ${preorder.notes ? `<div><strong>Notes:</strong> ${preorder.notes}</div>` : ''}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #111; margin-bottom: 15px;">🛍️ Order Items</h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        ${items.map(item => `
+                            <div style="border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 700; margin-bottom: 5px;">${item.name}</div>
+                                    <div style="color: #666; font-size: 14px;">Size: ${item.size} | Quantity: ${item.qty}</div>
+                                </div>
+                                <div style="font-weight: 700; color: #ff3b30;">₹${item.price * item.qty}</div>
+                            </div>
+                        `).join('')}
+                        <div style="border-top: 2px solid #111; margin-top: 15px; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 18px;">
+                            <div>Total Amount:</div>
+                            <div style="color: #ff3b30;">₹${preorder.payload?.total || 0}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('orderDetailContent').innerHTML = detailHTML;
+            document.getElementById('orderDetailModal').style.display = 'flex';
+        }
+
+        function closeOrderDetail() {
+            document.getElementById('orderDetailModal').style.display = 'none';
+            currentOrderId = null;
+        }
+
+        async function deleteCurrentOrder() {
+            if (!currentOrderId) return;
+            if (!confirm('Are you sure you want to delete this order?')) return;
+            
+            try {
+                await window.griitxDB.deletePreorder(currentOrderId);
+                closeOrderDetail();
+                await loadPreorders();
+                showNotification('Order deleted successfully', 'success');
+            } catch (e) {
+                console.error("Failed to delete order:", e);
+                showNotification('Failed to delete order', 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('orderDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeOrderDetail();
+            }
+        });
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
